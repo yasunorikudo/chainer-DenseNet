@@ -12,13 +12,14 @@ This repository includes network definition scripts only.
 
 # Training for cifar-10
 
-Use [mitmul's repository](https://github.com/mitmul/chainer-cifar10).
+Use [mitmul's repository](https://github.com/mitmul/chainer-cifar10/tree/34aa43ff1f1bc559b02bdfc7953747aa84048612).
 
 Run:
 ```
 git clone https://github.com/mitmul/chainer-cifar10.git
-cp densenet.py chainer-cifar10/models
 cd chainer-cifar10
+git checkout 34aa43ff1f1bc559b02bdfc7953747aa84048612
+cp ../densenet.py models
 bash download.sh
-python train.py --model models/densenet.py --lr 0.1 --batchsize 64
+python train.py --model models/densenet.py --batchsize 64 --lr 0.1 --epoch 300 --lr_decay_freq 120
 ```
