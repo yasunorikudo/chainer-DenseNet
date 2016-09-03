@@ -1,43 +1,48 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import math
 import chainer
 import chainer.functions as F
 import chainer.links as L
+
+import math
+import numpy as np
 
 
 class DenseBlock(chainer.Chain):
     def __init__(self, in_ch, growth_rate, layer):
         self.layer = layer
-        w = math.sqrt(2)
         super(DenseBlock, self).__init__()
         for i in range(self.layer):
+            W = np.random.randn(growth_rate, in_ch + i * growth_rate, \
+                3, 3).astype(np.float32) * math.sqrt(2. / 9 / growth_rate)
             self.add_link('bn%d' % (i + 1),
                           L.BatchNormalization(in_ch + i * growth_rate))
             self.add_link('conv%d' % (i + 1),
                           L.Convolution2D(in_ch + i * growth_rate,
-                                          growth_rate, 3, 1, 1, w))
+                                          growth_rate, 3, 1, 1, initialW=W))
 
     def __call__(self, x, train):
         hs = [x,]
         for i in range(1, self.layer + 1):
             h = F.relu(self['bn%d' % i](F.concat(hs), test=not train))
-            h = self['conv%d' % i](h)
+            h = F.dropout(self['conv%d' % i](h), 0.2, train=train)
             hs.append(h)
         return F.concat(hs)
 
 
 class Transition(chainer.Chain):
     def __init__(self, in_ch):
-        w = math.sqrt(2)
+        W = np.random.randn(in_ch, in_ch, 1, 1).astype(np.float32) \
+            * math.sqrt(2. / 9 / in_ch)
         super(Transition, self).__init__(
             bn=L.BatchNormalization(in_ch),
-            conv=L.Convolution2D(in_ch, in_ch, 1, 1, 0, w))
+            conv=L.Convolution2D(in_ch, in_ch, 1, initialW=W))
 
     def __call__(self, x, train):
         h = F.relu(self.bn(x, test=not train))
-        h = F.average_pooling_2d(self.conv(h), 2)
+        h = F.dropout(self.conv(h), 0.2, train=train)
+        h = F.average_pooling_2d(h, 2)
         return h
 
 
@@ -55,10 +60,11 @@ class DenseNet(chainer.Chain):
             in dense blocks, which is difined as k in the paper.
 
         """
-        w = math.sqrt(2)
         in_chs = range(16, 16 + 4 * layer * growth_rate, layer * growth_rate)
+        W = np.random.randn(in_chs[0], 3, 3, 3).astype(np.float32) * \
+            math.sqrt(2. / 9 / in_chs[0])
         super(DenseNet, self).__init__(
-            conv1=L.Convolution2D(3, in_chs[0], 3, 1, 1, w),
+            conv1=L.Convolution2D(3, in_chs[0], 3, 1, 1, initialW=W),
             dense2=DenseBlock(in_chs[0], growth_rate, layer),
             trans2=Transition(in_chs[1]),
             dense3=DenseBlock(in_chs[1], growth_rate, layer),
@@ -74,7 +80,7 @@ class DenseNet(chainer.Chain):
 
     def __call__(self, x, t):
         self.clear()
-        h = self.conv1(x)
+        h = F.dropout(self.conv1(x), 0.2, train=self.train)
         h = self.trans2(self.dense2(h, self.train), self.train)
         h = self.trans3(self.dense3(h, self.train), self.train)
         h = F.relu(self.bn4(self.dense4(h, self.train)))

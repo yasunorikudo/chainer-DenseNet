@@ -5,12 +5,15 @@ Implementation by Chainer. Original paper is [Densely Connected Convolutional Ne
 
 This repository includes network definition scripts only.
 
+# Requirements
+
 - [Chainer 1.5+](https://github.com/pfnet/chainer) (Neural network framework)
 
 
-# Training cifar-10
+# Training for cifar-10
 
-Use [mitmul's repository](https://github.com/mitmul).
+Use [mitmul's repository](https://github.com/mitmul/chainer-cifar10).
+
 Run:
 ```
 git clone https://github.com/mitmul/chainer-cifar10.git
