@@ -8,15 +8,16 @@ import chainer.links as L
 
 
 class DenseBlock(chainer.Chain):
-    def __init__(self, in_ch, out_ch, layer):
+    def __init__(self, in_ch, growth_rate, layer):
         self.layer = layer
         w = math.sqrt(2)
         super(DenseBlock, self).__init__()
         for i in range(self.layer):
             self.add_link('bn%d' % (i + 1),
-                L.BatchNormalization(in_ch + i * out_ch))
+                          L.BatchNormalization(in_ch + i * growth_rate))
             self.add_link('conv%d' % (i + 1),
-                L.Convolution2D(in_ch + i * out_ch, out_ch, 3, 1, 1, w))
+                          L.Convolution2D(in_ch + i * growth_rate,
+                                          growth_rate, 3, 1, 1, w))
 
     def __call__(self, x, train):
         hs = [x,]
@@ -44,25 +45,25 @@ class DenseNet(chainer.Chain):
 
     insize = 32
 
-    def __init__(self, layer=12, out_ch=12):
+    def __init__(self, layer=12, growth_rate=12):
+        """
 
-        '''
-        layer:  Number of convolution layers in one dense block.
-                If layer=12, the network is made out of 40 (12*3+4) layers.
-                If layer=32, the network is made out of 100 (32*3+4) layers.
-        out_ch: Number of output feature maps of each convolution layer in
-                dense blocks, which is difined as growth rate(k) in the paper.
-        '''
+        layer: Number of convolution layers in one dense block.
+            If layer=12, the network is made out of 40 (12*3+4) layers.
+            If layer=32, the network is made out of 100 (32*3+4) layers.
+        growth_rate: Number of output feature maps of each convolution layer
+            in dense blocks, which is difined as k in the paper.
 
+        """
         w = math.sqrt(2)
-        in_chs = range(16, 16 + 4 * layer * out_ch, layer * out_ch)
+        in_chs = range(16, 16 + 4 * layer * growth_rate, layer * growth_rate)
         super(DenseNet, self).__init__(
             conv1=L.Convolution2D(3, in_chs[0], 3, 1, 1, w),
-            dense2=DenseBlock(in_chs[0], out_ch, layer),
+            dense2=DenseBlock(in_chs[0], growth_rate, layer),
             trans2=Transition(in_chs[1]),
-            dense3=DenseBlock(in_chs[1], out_ch, layer),
+            dense3=DenseBlock(in_chs[1], growth_rate, layer),
             trans3=Transition(in_chs[2]),
-            dense4=DenseBlock(in_chs[2], out_ch, layer),
+            dense4=DenseBlock(in_chs[2], growth_rate, layer),
             bn4=L.BatchNormalization(in_chs[3]),
             fc5=L.Linear(in_chs[3], 10))
         self.train = True
