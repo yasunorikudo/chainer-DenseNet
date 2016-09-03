@@ -12,22 +12,17 @@ class DenseBlock(chainer.Chain):
         self.layer = layer
         w = math.sqrt(2)
         super(DenseBlock, self).__init__()
-        links = []
         for i in range(self.layer):
-            links += [('bn{}'.format(i + 1),
-                       L.BatchNormalization(in_ch + i*out_ch)),
-                      ('conv{}'.format(i + 1),
-                       L.Convolution2D(in_ch + i*out_ch, out_ch, 3, 1, 1, w))]
-        for link in links:
-            self.add_link(*link)
-        self.forward = links
+            self.add_link('bn%d' % (i + 1),
+                L.BatchNormalization(in_ch + i * out_ch))
+            self.add_link('conv%d' % (i + 1),
+                L.Convolution2D(in_ch + i * out_ch, out_ch, 3, 1, 1, w))
 
     def __call__(self, x, train):
         hs = [x,]
-        for i in range(self.layer):
-            bn = getattr(self, self.forward[2*i][0])
-            conv = getattr(self, self.forward[2*i + 1][0])
-            h = conv(F.relu(bn(F.concat(hs), test=not train)))
+        for i in range(1, self.layer + 1):
+            h = F.relu(self['bn%d' % i](F.concat(hs), test=not train))
+            h = self['conv%d' % i](h)
             hs.append(h)
         return F.concat(hs)
 
@@ -60,7 +55,7 @@ class DenseNet(chainer.Chain):
         '''
 
         w = math.sqrt(2)
-        in_chs = range(16, 16 + 4*layer*out_ch, layer*out_ch)
+        in_chs = range(16, 16 + 4 * layer * out_ch, layer * out_ch)
         super(DenseNet, self).__init__(
             conv1=L.Convolution2D(3, in_chs[0], 3, 1, 1, w),
             dense2=DenseBlock(in_chs[0], out_ch, layer),
