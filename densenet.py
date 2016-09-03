@@ -34,7 +34,7 @@ class DenseBlock(chainer.Chain):
 class Transition(chainer.Chain):
     def __init__(self, in_ch):
         W = np.random.randn(in_ch, in_ch, 1, 1).astype(np.float32) \
-            * math.sqrt(2. / 9 / in_ch)
+            * math.sqrt(2. / in_ch)
         super(Transition, self).__init__(
             bn=L.BatchNormalization(in_ch),
             conv=L.Convolution2D(in_ch, in_ch, 1, initialW=W))
