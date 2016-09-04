@@ -23,12 +23,11 @@ class DenseBlock(chainer.Chain):
                                           growth_rate, 3, 1, 1, initialW=W))
 
     def __call__(self, x, train):
-        hs = [x,]
         for i in range(1, self.layer + 1):
-            h = F.relu(self['bn%d' % i](F.concat(hs), test=not train))
+            h = F.relu(self['bn%d' % i](x, test=not train))
             h = F.dropout(self['conv%d' % i](h), 0.2, train=train)
-            hs.append(h)
-        return F.concat(hs)
+            x = F.concat((x, h))
+        return x
 
 
 class Transition(chainer.Chain):
