@@ -11,6 +11,7 @@ This repository includes network definition scripts only.
 
 # Start training
 Run,
-'''
+
+```
 python train.py --gpus 0 --batchsize 64 --dataset cifar100 --lr 0.1 --depth 100 --growth_rate 12
-'''
+```
