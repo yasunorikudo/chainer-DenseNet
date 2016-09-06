@@ -31,8 +31,8 @@ def main(args):
     test_iter = chainer.iterators.SerialIterator(
         test, args.batchsize, repeat=False, shuffle=False)
 
-    model = chainer.links.Classifier(
-        DenseNet(n_layer, args.growth_rate, n_class, args.drop_ratio))
+    model = chainer.links.Classifier(DenseNet(
+        n_layer, args.growth_rate, n_class, args.drop_ratio, 16, args.block))
     if args.init:
         serializers.load_npz(args.init, model)
 
