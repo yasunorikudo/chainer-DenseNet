@@ -7,4 +7,10 @@ This repository includes network definition scripts only.
 
 # Requirements
 
-- [Chainer 1.5+](https://github.com/pfnet/chainer) (Neural network framework)
+- [Chainer 1.15.0+](https://github.com/pfnet/chainer) (Neural network framework)
+
+# Start training
+Run,
+'''
+python train.py --gpus 0 --batchsize 64 --dataset cifar100 --lr 0.1 --depth 100 --growth_rate 12
+'''
