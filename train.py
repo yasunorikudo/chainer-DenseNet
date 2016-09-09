@@ -8,10 +8,13 @@ from chainer import training
 from chainer.training import extensions
 
 import math
+import numpy
 import time
 
 import cmd_options
+from dataset import PreprocessedDataset
 from densenet import DenseNet
+from graph import create_fig
 
 
 def main(args):
@@ -27,14 +30,21 @@ def main(args):
     elif args.dataset == 'SVHN':
         raise NotImplementedError()
 
-    train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
-    test_iter = chainer.iterators.SerialIterator(
+    mean = numpy.zeros((3, 32, 32), dtype=numpy.float32)
+    for image, _ in train:
+        mean += image / len(train)
+
+    train = PreprocessedDataset(train, mean, random=True)
+    test = PreprocessedDataset(test, mean)
+
+    train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
+    test_iter = chainer.iterators.MultiprocessIterator(
         test, args.batchsize, repeat=False, shuffle=False)
 
     model = chainer.links.Classifier(DenseNet(
         n_layer, args.growth_rate, n_class, args.drop_ratio, 16, args.block))
-    if args.init:
-        serializers.load_npz(args.init, model)
+    if args.init_model:
+        serializers.load_npz(args.init_model, model)
 
     optimizer = chainer.optimizers.MomentumSGD(
         lr=args.lr / len(args.gpus), momentum=0.9)
@@ -72,6 +82,8 @@ def main(args):
         'time', 'epoch', 'iteration', 'main/loss', 'validation/main/loss',
         'main/accuracy', 'validation/main/accuracy', 'lr',
     ]), trigger=log_interval)
+    trainer.extend(extensions.observe_value(
+        'graph', lambda _: create_fig(args.dir)), trigger=(2, 'epoch'))
     trainer.extend(extensions.ProgressBar(update_interval=10))
 
     trainer.run()
