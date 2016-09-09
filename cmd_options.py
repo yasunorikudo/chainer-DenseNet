@@ -2,8 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import logging
 import os
 import time
+
+
+def create_log(args):
+    logging.basicConfig(
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        filename=os.path.join(args.dir, 'options.txt'), level=logging.DEBUG)
+    logging.info(args)
 
 
 def create_result_dir(dir):
@@ -29,7 +37,7 @@ def get_arguments():
     parser.add_argument('--growth_rate', type=int, default=12)
     parser.add_argument('--drop_ratio', type=float, default=0.2)
     parser.add_argument('--block', type=int, default=3)
-    parser.add_argument('--init', type=str, default='')
+    parser.add_argument('--init_model', type=str, default='')
     parser.add_argument('--dir', type=str, default='')
     parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'cifar100', 'SVHN'])
@@ -37,5 +45,7 @@ def get_arguments():
 
     args.gpus = [int(i) for i in args.gpus.split(',')]
     args.dir = create_result_dir(args.dir)
+
+    create_log(args)
 
     return args
