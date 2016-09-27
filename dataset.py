@@ -22,7 +22,7 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
         label = np.array(label, dtype=np.int32)
 
         # normalize data
-        image -= self._mean.astype(np.float32)
+        image = image - self._mean.astype(np.float32)
         image /= np.std(image)
 
         # data augmentation
