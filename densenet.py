@@ -80,12 +80,12 @@ class DenseNet(chainer.Chain):
         self.block = block
 
     def __call__(self, x):
-        h = F.dropout(self.conv1(x), self.dropout_ratio, self.train)
+        h = self.conv1(x)
         for i in range(2, self.block + 2):
             h = self['dense%d' % i](h, self.dropout_ratio, self.train)
             if not i == self.block + 1:
                 h = self['trans%d' % i](h, self.dropout_ratio, self.train)
-        h = F.relu(self['bn%d' % (self.block + 1)](h))
+        h = F.relu(self['bn%d' % (self.block + 1)](h, test=not self.train))
         h = F.average_pooling_2d(h, h.data.shape[2])
         h = self['fc%d' % (self.block + 2)](h)
         return h
