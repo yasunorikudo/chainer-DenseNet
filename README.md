@@ -22,10 +22,10 @@ python train.py --help
 
 # Sample results
 
-- Cifar-10
+- Cifar-10 (batchsize=32, depth=12, growth_rate=12)
 
 ![](https://raw.githubusercontent.com/yasunorikudo/chainer-DenseNet/images/cifar10.png)
 
-- Cifar-100
+- Cifar-100 (batchsize=32, depth=12, growth_rate=12)
 
 ![](https://raw.githubusercontent.com/yasunorikudo/chainer-DenseNet/images/cifar100.png)
