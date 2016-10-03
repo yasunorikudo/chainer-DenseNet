@@ -8,11 +8,17 @@ Implementation by Chainer. Original paper is [Densely Connected Convolutional Ne
 - [Chainer 1.15.0+](https://github.com/pfnet/chainer) (Neural network framework)
 
 # Start training
-Run,
+For example, run,
 
 ```
-python train.py --gpus 0 --batchsize 64 --dataset cifar100 --lr 0.1 --depth 100 --growth_rate 12
+python train.py --gpus 0 --batchsize 32 --dataset cifar10 --lr 0.1 --depth 100 --growth_rate 12
 ```
+
+## Show possible options
+```
+python train.py --help
+```
+
 
 # Sample results
 
