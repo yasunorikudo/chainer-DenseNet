@@ -26,7 +26,8 @@ def create_result_dir(dir):
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpus', type=str, default='0')
+    parser.add_argument('--gpus', type=str, default='0')  # multi gpus '0,1,2'
+    parser.add_argument('--augment', type=str, default='t', choices=['t', 'f'])
     parser.add_argument('--batchsize', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
@@ -41,6 +42,7 @@ def get_arguments():
     args = parser.parse_args()
 
     args.gpus = [int(i) for i in args.gpus.split(',')]
+    args.augment = True if args.augment == 't' else False
     args.dir = create_result_dir(args.dir)
 
     create_log(args)

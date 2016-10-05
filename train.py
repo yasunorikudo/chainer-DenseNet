@@ -30,7 +30,7 @@ def main(args):
     elif args.dataset == 'SVHN':
         raise NotImplementedError()
 
-    train = PreprocessedDataset(train, random=True)
+    train = PreprocessedDataset(train, random=args.augment)
     test = PreprocessedDataset(test)
 
     train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
