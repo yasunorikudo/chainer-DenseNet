@@ -21,7 +21,7 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
         # load label data
         t = np.array(label, dtype=np.int32)
 
-        # substract mean
+        # substract mean (global contrast normalization)
         x = np.empty_like(image)
         mean = np.mean(image, axis=(1, 2))
         for i in moves.range(3):
@@ -40,7 +40,7 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
             if random.randint(0, 1):
                 x = x[:, :, ::-1]
 
-        # standard deviations
+        # standard deviations (global contrast normalization)
         for i in moves.range(3):
             x[i] /= np.std(x[i])
 
