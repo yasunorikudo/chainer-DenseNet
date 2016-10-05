@@ -8,9 +8,8 @@ from six import moves
 
 
 class PreprocessedDataset(chainer.dataset.DatasetMixin):
-    def __init__(self, pairs, mean, random=False):
+    def __init__(self, pairs, random=False):
         self._pairs = pairs
-        self._mean = mean
         self._random = random
 
     def __len__(self):
@@ -40,5 +39,5 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
             # horizontal flip
             if random.randint(0, 1):
                 x = x[:, :, ::-1]
-                
+
         return x, t
