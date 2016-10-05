@@ -64,7 +64,7 @@ def main(args):
     eval_model = model.copy()
     eval_model.train = False
 
-    def lr_shift():
+    def lr_shift():  # DenseNet specific!
         if updater.epoch == 151 or updater.epoch == 226:
             optimizer.lr *= 0.1
         return optimizer.lr
