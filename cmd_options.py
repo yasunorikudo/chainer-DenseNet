@@ -26,16 +26,13 @@ def create_result_dir(dir):
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpus', type=str, default='0,1,2')
+    parser.add_argument('--gpus', type=str, default='0')
     parser.add_argument('--batchsize', type=int, default=64)
-    parser.add_argument('--epoch', type=int, default=300)
     parser.add_argument('--lr', type=float, default=0.1)
-    parser.add_argument('--lr_decay_freq', type=int, default=120)
-    parser.add_argument('--lr_decay_ratio', type=float, default=0.1)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
     parser.add_argument('--depth', type=int, default=40)
     parser.add_argument('--growth_rate', type=int, default=12)
-    parser.add_argument('--drop_ratio', type=float, default=0.2)
+    parser.add_argument('--drop_ratio', type=float, default=0)  # 0.2 (no augmentation)
     parser.add_argument('--block', type=int, default=3)
     parser.add_argument('--init_model', type=str, default='')
     parser.add_argument('--dir', type=str, default='')

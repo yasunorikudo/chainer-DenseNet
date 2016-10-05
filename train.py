@@ -56,7 +56,7 @@ def main(args):
         for gid in args.gpus[1:]:
             devices['gpu%d' % gid] = gid
     updater = training.ParallelUpdater(train_iter, optimizer, devices=devices)
-    trainer = training.Trainer(updater, (args.epoch, 'epoch'), out=args.dir)
+    trainer = training.Trainer(updater, (300, 'epoch'), out=args.dir)
 
     val_interval = (1, 'epoch')
     log_interval = (1, 'epoch')
@@ -64,10 +64,15 @@ def main(args):
     eval_model = model.copy()
     eval_model.train = False
 
+    def lr_shift():
+        if updater.epoch == 151 or updater.epoch == 226:
+            optimizer.lr *= 0.1
+        return optimizer.lr
+
     trainer.extend(extensions.Evaluator(
         test_iter, eval_model, device=args.gpus[0]), trigger=val_interval)
-    trainer.extend(extensions.ExponentialShift(
-        'lr', args.lr_decay_ratio), trigger=(args.lr_decay_freq, 'epoch'))
+    trainer.extend(extensions.observe_value(
+        'lr', lambda _: lr_shift()), trigger=(1, 'epoch'))
     trainer.extend(extensions.dump_graph('main/loss'))
     trainer.extend(extensions.snapshot_object(
         model, 'epoch_{.updater.epoch}.model'), trigger=val_interval)
