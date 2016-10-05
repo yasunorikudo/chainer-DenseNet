@@ -48,7 +48,7 @@ def main(args):
     optimizer.add_hook(chainer.optimizer.WeightDecay(args.weight_decay))
 
     devices = {'main': args.gpus[0]}
-    if len(args.gpus) > 2:
+    if len(args.gpus) > 1:
         for gid in args.gpus[1:]:
             devices['gpu%d' % gid] = gid
     updater = training.ParallelUpdater(train_iter, optimizer, devices=devices)
