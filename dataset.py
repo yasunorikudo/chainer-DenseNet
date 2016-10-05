@@ -30,12 +30,15 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
 
         # data augmentation
         if self._random:
+            # random crop
             pad_x = np.zeros((3, 40, 40), dtype=np.float32)
             pad_x[:, 4:36, 4:36] = x
             top = random.randint(0, 8)
             left = random.randint(0, 8)
             x = pad_x[:, top:top+32, left:left+32]
+
+            # horizontal flip
             if random.randint(0, 1):
                 x = x[:, :, ::-1]
-
+                
         return x, t
