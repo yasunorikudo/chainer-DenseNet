@@ -7,13 +7,14 @@ import chainer.links as L
 
 import math
 import numpy as np
+from six import moves
 
 
 class DenseBlock(chainer.Chain):
     def __init__(self, in_ch, growth_rate, n_layer):
         self.n_layer = n_layer
         super(DenseBlock, self).__init__()
-        for i in range(self.n_layer):
+        for i in moves.range(self.n_layer):
             W = np.random.randn(growth_rate, in_ch + i * growth_rate, 3, 3) \
                 .astype(np.float32) * math.sqrt(2. / 9 / growth_rate)
             self.add_link('bn%d' % (i + 1),
@@ -23,7 +24,7 @@ class DenseBlock(chainer.Chain):
                                           growth_rate, 3, 1, 1, initialW=W))
 
     def __call__(self, x, dropout_ratio, train):
-        for i in range(1, self.n_layer + 1):
+        for i in moves.range(1, self.n_layer + 1):
             h = F.relu(self['bn%d' % i](x, test=not train))
             h = F.dropout(self['conv%d' % i](h), dropout_ratio, train)
             x = F.concat((x, h))
@@ -62,13 +63,14 @@ class DenseNet(chainer.Chain):
             block: Number of dense block.
 
         """
-        in_chs = range(in_ch, in_ch + (block + 1) * n_layer * growth_rate,
-                       n_layer * growth_rate)
+        in_chs = moves.range(
+            in_ch, in_ch + (block + 1) * n_layer * growth_rate,
+            n_layer * growth_rate)
         W = np.random.randn(in_ch, 3, 3, 3).astype(np.float32) * \
             math.sqrt(2. / 9 / in_ch)
         super(DenseNet, self).__init__()
         self.add_link('conv1', L.Convolution2D(3, in_ch, 3, 1, 1, initialW=W))
-        for i in range(block):
+        for i in moves.range(block):
             self.add_link('dense%d' % (i + 2),
                           DenseBlock(in_chs[i], growth_rate, n_layer))
             if not i == block - 1:
@@ -82,7 +84,7 @@ class DenseNet(chainer.Chain):
 
     def __call__(self, x):
         h = self.conv1(x)
-        for i in range(2, self.block + 2):
+        for i in moves.range(2, self.block + 2):
             h = self['dense%d' % i](h, self.dropout_ratio, self.train)
             if not i == self.block + 1:
                 h = self['trans%d' % i](h, self.dropout_ratio, self.train)
