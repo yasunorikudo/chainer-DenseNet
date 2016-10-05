@@ -7,8 +7,6 @@ from chainer import serializers
 from chainer import training
 from chainer.training import extensions
 
-import math
-import numpy
 import time
 
 import cmd_options
@@ -88,6 +86,7 @@ def main(args):
     trainer.extend(extensions.ProgressBar(update_interval=10))
 
     trainer.run()
+
 
 if __name__ == '__main__':
     args = cmd_options.get_arguments()

@@ -14,8 +14,8 @@ class DenseBlock(chainer.Chain):
         self.n_layer = n_layer
         super(DenseBlock, self).__init__()
         for i in range(self.n_layer):
-            W = np.random.randn(growth_rate, in_ch + i * growth_rate, \
-                3, 3).astype(np.float32) * math.sqrt(2. / 9 / growth_rate)
+            W = np.random.randn(growth_rate, in_ch + i * growth_rate, 3, 3) \
+                .astype(np.float32) * math.sqrt(2. / 9 / growth_rate)
             self.add_link('bn%d' % (i + 1),
                           L.BatchNormalization(in_ch + i * growth_rate))
             self.add_link('conv%d' % (i + 1),
@@ -48,18 +48,18 @@ class Transition(chainer.Chain):
 class DenseNet(chainer.Chain):
     def __init__(self, n_layer=12, growth_rate=12,
                  n_class=10, dropout_ratio=0.2, in_ch=16, block=3):
-        """
+        """DenseNet definition.
 
-        n_layer: Number of convolution layers in one dense block.
-            If n_layer=12, the network is made out of 40 (12*3+4) layers.
-            If n_layer=32, the network is made out of 100 (32*3+4) layers.
-        growth_rate: Number of output feature maps of each convolution layer
-            in dense blocks, which is difined as k in the paper.
-        n_class: Output class.
-        dropout_ratio: Dropout ratio.
-        in_ch: Number of output feature maps of first convolution layer.
-        block: Number of dense block.
-
+        Args:
+            n_layer: Number of convolution layers in one dense block.
+                If n_layer=12, the network is made out of 40 (12*3+4) layers.
+                If n_layer=32, the network is made out of 100 (32*3+4) layers.
+            growth_rate: Number of output feature maps of each convolution
+                layer in dense blocks, which is difined as k in the paper.
+            n_class: Output class.
+            dropout_ratio: Dropout ratio.
+            in_ch: Number of output feature maps of first convolution layer.
+            block: Number of dense block.
 
         """
         in_chs = range(in_ch, in_ch + (block + 1) * n_layer * growth_rate,
@@ -73,7 +73,8 @@ class DenseNet(chainer.Chain):
                           DenseBlock(in_chs[i], growth_rate, n_layer))
             if not i == block - 1:
                 self.add_link('trans%d' % (i + 2), Transition(in_chs[i + 1]))
-        self.add_link('bn%d' % (block + 1), L.BatchNormalization(in_chs[block]))
+        self.add_link(
+            'bn%d' % (block + 1), L.BatchNormalization(in_chs[block]))
         self.add_link('fc%d' % (block + 2), L.Linear(in_chs[block], n_class))
         self.train = True
         self.dropout_ratio = dropout_ratio

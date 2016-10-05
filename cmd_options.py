@@ -20,9 +20,12 @@ def create_result_dir(dir):
     if dir:
         result_dir = os.path.join('results', dir)
     else:
-        result_dir = os.path.join('results', time.strftime('%Y-%m-%d_%H-%M-%S'))
-    if not os.path.exists(result_dir): os.mkdir(result_dir)
+        result_dir = os.path.join(
+            'results', time.strftime('%Y-%m-%d_%H-%M-%S'))
+    if not os.path.exists(result_dir):
+        os.mkdir(result_dir)
     return result_dir
+
 
 def get_arguments():
     parser = argparse.ArgumentParser()
@@ -33,7 +36,7 @@ def get_arguments():
     parser.add_argument('--weight_decay', type=float, default=1e-4)
     parser.add_argument('--depth', type=int, default=40)
     parser.add_argument('--growth_rate', type=int, default=12)
-    parser.add_argument('--drop_ratio', type=float, default=0)  # 0.2 (no augmentation)
+    parser.add_argument('--drop_ratio', type=float, default=0)  # 0.2 (cifar+)
     parser.add_argument('--block', type=int, default=3)
     parser.add_argument('--init_model', type=str, default='')
     parser.add_argument('--dir', type=str, default='')

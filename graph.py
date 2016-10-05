@@ -8,6 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 
+
 def create_fig(out_dir):
     # load data
     data = json.load(open(os.path.join(out_dir, 'log')))
@@ -23,10 +24,11 @@ def create_fig(out_dir):
     x = range(1, len(train_loss) + 1)
 
     # show graph
-    fig, (axL, axR) = plt.subplots(ncols=2, figsize=(10,4), sharex=True)
+    fig, (axL, axR) = plt.subplots(ncols=2, figsize=(10, 4), sharex=True)
     axL.plot(x, valid_error, label='valid error')
     axL.plot(x, train_error, label='train error')
-    axL.set_title('Error (min. valid error: {0:.3f}%)'.format(min(valid_error) * 100))
+    axL.set_title(
+        'Error (min. valid error: {0:.3f}%)'.format(min(valid_error) * 100))
     axL.set_xlabel('epoch')
     axL.set_ylabel('error')
     axL.legend(loc='upper right')
@@ -46,4 +48,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     create_fig(args.out_dir)
-    print('Saved fig as \'{}\' !!'.format(os.path.join(args.out_dir, 'graph.png')))
+    print('Saved fig as \'{}\' !!'.format(
+        os.path.join(args.out_dir, 'graph.png')))
