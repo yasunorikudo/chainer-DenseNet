@@ -18,7 +18,6 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
 
     def get_example(self, i):
         image, label = self._pairs[i]
-        assert(image.dtype == np.float32)
 
         # load label data
         t = np.array(label, dtype=np.int32)
