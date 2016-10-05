@@ -4,12 +4,12 @@
 import chainer
 import numpy as np
 import random
+from six import moves
 
 
 class PreprocessedDataset(chainer.dataset.DatasetMixin):
-    def __init__(self, pairs, mean, random=False):
+    def __init__(self, pairs, random=False):
         self._pairs = pairs
-        self._mean = mean
         self._random = random
 
     def __len__(self):
@@ -19,20 +19,25 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
         image, label = self._pairs[i]
 
         # load label data
-        label = np.array(label, dtype=np.int32)
+        t = np.array(label, dtype=np.int32)
 
-        # normalize data
-        image = image - self._mean.astype(np.float32)
-        image /= np.std(image)
+        # global contrast normalization
+        x = np.empty_like(image)
+        for i in moves.range(3):
+            x[i] = image[i] - np.mean(image, axis=(1, 2))[i]
+            x[i] /= np.std(x[i])
 
         # data augmentation
         if self._random:
-            pad_image = np.zeros((3, 40, 40), dtype=np.float32)
-            pad_image[:, 4:36, 4:36] = image
+            # random crop
+            pad_x = np.zeros((3, 40, 40), dtype=np.float32)
+            pad_x[:, 4:36, 4:36] = x
             top = random.randint(0, 8)
             left = random.randint(0, 8)
-            image = pad_image[:, top:top+32, left:left+32]
-            if random.randint(0, 1):
-                image = image[:, :, ::-1]
+            x = pad_x[:, top:top+32, left:left+32]
 
-        return image, label
+            # horizontal flip
+            if random.randint(0, 1):
+                x = x[:, :, ::-1]
+
+        return x, t

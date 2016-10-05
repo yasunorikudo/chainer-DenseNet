@@ -30,12 +30,8 @@ def main(args):
     elif args.dataset == 'SVHN':
         raise NotImplementedError()
 
-    mean = numpy.zeros((3, 32, 32), dtype=numpy.float32)
-    for image, _ in train:
-        mean += image / len(train)
-
-    train = PreprocessedDataset(train, mean, random=True)
-    test = PreprocessedDataset(test, mean)
+    train = PreprocessedDataset(train, random=True)
+    test = PreprocessedDataset(test)
 
     train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
     test_iter = chainer.iterators.MultiprocessIterator(
