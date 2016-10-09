@@ -12,6 +12,7 @@ import time
 import cmd_options
 from dataset import PreprocessedDataset
 from densenet import DenseNet
+from evaluator import Evaluator
 from graph import create_fig
 
 
@@ -55,16 +56,13 @@ def main(args):
     val_interval = (1, 'epoch')
     log_interval = (1, 'epoch')
 
-    eval_model = model.copy()
-    eval_model.predictor.train = False
-
     def lr_shift():  # DenseNet specific!
         if updater.epoch == 151 or updater.epoch == 226:
             optimizer.lr *= 0.1
         return optimizer.lr
 
-    trainer.extend(extensions.Evaluator(
-        test_iter, eval_model, device=args.gpus[0]), trigger=val_interval)
+    trainer.extend(Evaluator(
+        test_iter, model, device=args.gpus[0]), trigger=val_interval)
     trainer.extend(extensions.observe_value(
         'lr', lambda _: lr_shift()), trigger=(1, 'epoch'))
     trainer.extend(extensions.dump_graph('main/loss'))
