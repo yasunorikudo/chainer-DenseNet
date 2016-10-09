@@ -56,7 +56,7 @@ def main(args):
     log_interval = (1, 'epoch')
 
     eval_model = model.copy()
-    eval_model.train = False
+    eval_model.predictor.train = False
 
     def lr_shift():  # DenseNet specific!
         if updater.epoch == 151 or updater.epoch == 226:
