@@ -41,7 +41,7 @@ def main(args):
     if args.init_model:
         serializers.load_npz(args.init_model, model)
 
-    optimizer = chainer.optimizers.MomentumSGD(
+    optimizer = chainer.optimizers.NesterovAG(
         lr=args.lr / len(args.gpus), momentum=0.9)
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(args.weight_decay))
