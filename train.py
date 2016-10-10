@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import chainer
+from chainer.dataset import convert
 from chainer.datasets import cifar
 from chainer import serializers
 from chainer import training
@@ -29,8 +30,12 @@ def main(args):
     elif args.dataset == 'SVHN':
         raise NotImplementedError()
 
-    train = PreprocessedDataset(train, random=args.augment)
-    test = PreprocessedDataset(test)
+    images = convert.concat_examples(train)[0]
+    mean = images.mean(axis=(0, 2, 3))
+    std = images.std(axis=(0, 2, 3))
+
+    train = PreprocessedDataset(train, mean, std, random=args.augment)
+    test = PreprocessedDataset(test, mean, std)
 
     train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
     test_iter = chainer.iterators.MultiprocessIterator(

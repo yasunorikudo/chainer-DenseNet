@@ -8,8 +8,10 @@ from six import moves
 
 
 class PreprocessedDataset(chainer.dataset.DatasetMixin):
-    def __init__(self, pairs, random=False):
+    def __init__(self, pairs, mean, std, random=False):
         self._pairs = pairs
+        self._mean = mean
+        self._std = std
         self._random = random
 
     def __len__(self):
@@ -21,12 +23,11 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
         # load label data
         t = np.array(label, dtype=np.int32)
 
-        # global contrast normalization
+        # normalize data
         x = np.empty_like(image)
-        mean = np.mean(image, axis=(1, 2))
         for i in moves.range(3):
-            x[i] = image[i] - mean[i]
-            x[i] /= np.std(x[i])
+            x[i] = image[i] - self._mean[i]
+            x[i] /= self._std[i]
 
         # data augmentation
         if self._random:
