@@ -62,7 +62,7 @@ def main(args):
     log_interval = (1, 'epoch')
 
     def lr_shift():  # DenseNet specific!
-        if updater.epoch == 151 or updater.epoch == 226:
+        if updater.epoch == 150 or updater.epoch == 225:
             optimizer.lr *= 0.1
         return optimizer.lr
 
@@ -76,7 +76,6 @@ def main(args):
     trainer.extend(extensions.snapshot_object(
         optimizer, 'epoch_{.updater.epoch}.state'), trigger=val_interval)
     trainer.extend(extensions.LogReport(trigger=log_interval))
-    trainer.extend(extensions.observe_lr(), trigger=log_interval)
     start_time = time.time()
     trainer.extend(extensions.observe_value(
         'time', lambda _: time.time() - start_time), trigger=log_interval)
