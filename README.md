@@ -11,7 +11,7 @@ Implementation by Chainer. Original paper is [Densely Connected Convolutional Ne
 For example, run,
 
 ```
-python train.py --gpus 0 --batchsize 32 --dataset cifar10 --lr 0.1 --depth 100 --growth_rate 12
+python train.py --gpu 0 --batchsize 64 --dataset cifar10 --lr 0.1 --depth 40 --growth_rate 12
 ```
 
 ## Show possible options
