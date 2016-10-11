@@ -22,10 +22,8 @@ python train.py --help
 
 # Sample results
 
-- Cifar-10 (batchsize=32, depth=100, growth_rate=12)
+- Cifar-10 (batchsize=64, depth=40, growth_rate=12, data augmentation)
 
 ![](https://raw.githubusercontent.com/yasunorikudo/chainer-DenseNet/images/cifar10.png)
 
-- Cifar-100 (batchsize=32, depth=100, growth_rate=12)
-
-![](https://raw.githubusercontent.com/yasunorikudo/chainer-DenseNet/images/cifar100.png)
+[Original paper](https://arxiv.org/abs/1608.06993) reported 5.24% validation error under the same conditions.
