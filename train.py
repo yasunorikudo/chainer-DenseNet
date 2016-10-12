@@ -15,6 +15,7 @@ from dataset import PreprocessedDataset
 from densenet import DenseNet
 from evaluator import Evaluator
 from graph import create_fig
+from updater import StandardUpdater
 
 
 def main(args):
@@ -37,25 +38,24 @@ def main(args):
     train = PreprocessedDataset(train, mean, std, random=args.augment)
     test = PreprocessedDataset(test, mean, std)
 
-    train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
+    train_iter = chainer.iterators.MultiprocessIterator(
+        train, args.batchsize / args.split_size)
     test_iter = chainer.iterators.MultiprocessIterator(
-        test, args.batchsize, repeat=False, shuffle=False)
+        test, args.batchsize / args.split_size, repeat=False, shuffle=False)
 
     model = chainer.links.Classifier(DenseNet(
         n_layer, args.growth_rate, n_class, args.drop_ratio, 16, args.block))
     if args.init_model:
         serializers.load_npz(args.init_model, model)
+    chainer.cuda.get_device(args.gpu).use()
+    model.to_gpu()
 
-    optimizer = chainer.optimizers.NesterovAG(
-        lr=args.lr / len(args.gpus), momentum=0.9)
+    optimizer = chainer.optimizers.NesterovAG(lr=args.lr, momentum=0.9)
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(args.weight_decay))
 
-    devices = {'main': args.gpus[0]}
-    if len(args.gpus) > 1:
-        for gid in args.gpus[1:]:
-            devices['gpu%d' % gid] = gid
-    updater = training.ParallelUpdater(train_iter, optimizer, devices=devices)
+    updater = StandardUpdater(
+        train_iter, optimizer, (args.split_size, 'mean'), device=args.gpu)
     trainer = training.Trainer(updater, (300, 'epoch'), out=args.dir)
 
     val_interval = (1, 'epoch')
@@ -67,7 +67,7 @@ def main(args):
         return optimizer.lr
 
     trainer.extend(Evaluator(
-        test_iter, model, device=args.gpus[0]), trigger=val_interval)
+        test_iter, model, device=args.gpu), trigger=val_interval)
     trainer.extend(extensions.observe_value(
         'lr', lambda _: lr_shift()), trigger=(1, 'epoch'))
     trainer.extend(extensions.dump_graph('main/loss'))
@@ -84,7 +84,8 @@ def main(args):
         'main/accuracy', 'validation/main/accuracy', 'lr',
     ]), trigger=log_interval)
     trainer.extend(extensions.observe_value(
-        'graph', lambda _: create_fig(args.dir)), trigger=(2, 'epoch'))
+        'graph', lambda _: create_fig(args.dir)),
+        trigger=(1, 'epoch'), priority=50)
     trainer.extend(extensions.ProgressBar(update_interval=10))
 
     trainer.run()

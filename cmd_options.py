@@ -29,9 +29,10 @@ def create_result_dir(dir):
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpus', type=str, default='0')  # multi gpus '0,1,2'
+    parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--augment', type=str, default='t', choices=['t', 'f'])
     parser.add_argument('--batchsize', type=int, default=64)
+    parser.add_argument('--split_size', type=int, default=1)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
     parser.add_argument('--depth', type=int, default=40)
@@ -44,7 +45,9 @@ def get_arguments():
                         choices=['cifar10', 'cifar100', 'SVHN'])
     args = parser.parse_args()
 
-    args.gpus = [int(i) for i in args.gpus.split(',')]
+    if args.batchsize % args.split_size != 0:
+        raise Exception('batchsize must be divisible by split_size')
+
     args.augment = True if args.augment == 't' else False
     args.dir = create_result_dir(args.dir)
 
