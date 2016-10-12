@@ -46,7 +46,7 @@ def get_arguments():
     args = parser.parse_args()
 
     if args.batchsize % args.split_size != 0:
-        Exception('batchsize must be divisible by split_size')
+        raise Exception('batchsize must be divisible by split_size')
 
     args.augment = True if args.augment == 't' else False
     args.dir = create_result_dir(args.dir)

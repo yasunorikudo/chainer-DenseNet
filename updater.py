@@ -29,7 +29,7 @@ class StandardUpdater(training.StandardUpdater):
         elif batch_split[1] == 'sum':
             self._grad_divisor = 1
         else:
-            Exception('batch_split option is \'mean\' or \'sum\'')
+            raise Exception('batch_split option is \'mean\' or \'sum\'')
 
         self.converter = converter
         self.loss_func = loss_func

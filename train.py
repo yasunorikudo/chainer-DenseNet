@@ -84,7 +84,8 @@ def main(args):
         'main/accuracy', 'validation/main/accuracy', 'lr',
     ]), trigger=log_interval)
     trainer.extend(extensions.observe_value(
-        'graph', lambda _: create_fig(args.dir)), trigger=(2, 'epoch'))
+        'graph', lambda _: create_fig(args.dir)),
+        trigger=(1, 'epoch'), priority=50)
     trainer.extend(extensions.ProgressBar(update_interval=10))
 
     trainer.run()
