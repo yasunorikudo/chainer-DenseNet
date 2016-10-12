@@ -32,7 +32,7 @@ def get_arguments():
     parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--augment', type=str, default='t', choices=['t', 'f'])
     parser.add_argument('--batchsize', type=int, default=64)
-    parser.add_argument('--update_freq', type=int, default=1)
+    parser.add_argument('--split_size', type=int, default=1)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
     parser.add_argument('--depth', type=int, default=40)
@@ -44,6 +44,9 @@ def get_arguments():
     parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'cifar100', 'SVHN'])
     args = parser.parse_args()
+
+    if args.batchsize % args.split_size != 0:
+        Exception('batchsize must be divisible by split_size')
 
     args.augment = True if args.augment == 't' else False
     args.dir = create_result_dir(args.dir)

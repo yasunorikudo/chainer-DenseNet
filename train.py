@@ -38,9 +38,10 @@ def main(args):
     train = PreprocessedDataset(train, mean, std, random=args.augment)
     test = PreprocessedDataset(test, mean, std)
 
-    train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
+    train_iter = chainer.iterators.MultiprocessIterator(
+        train, args.batchsize / args.split_size)
     test_iter = chainer.iterators.MultiprocessIterator(
-        test, args.batchsize, repeat=False, shuffle=False)
+        test, args.batchsize / args.split_size, repeat=False, shuffle=False)
 
     model = chainer.links.Classifier(DenseNet(
         n_layer, args.growth_rate, n_class, args.drop_ratio, 16, args.block))
@@ -49,13 +50,12 @@ def main(args):
     chainer.cuda.get_device(args.gpu).use()
     model.to_gpu()
 
-    optimizer = chainer.optimizers.NesterovAG(
-        lr=args.lr / args.update_freq, momentum=0.9)
+    optimizer = chainer.optimizers.NesterovAG(lr=args.lr, momentum=0.9)
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(args.weight_decay))
 
     updater = StandardUpdater(
-        train_iter, optimizer, args.update_freq, device=args.gpu)
+        train_iter, optimizer, (args.split_size, 'mean'), device=args.gpu)
     trainer = training.Trainer(updater, (300, 'epoch'), out=args.dir)
 
     val_interval = (1, 'epoch')
