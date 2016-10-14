@@ -3,9 +3,9 @@
 
 import chainer
 import chainer.functions as F
+from chainer import initializers
 import chainer.links as L
 
-import math
 import numpy as np
 from six import moves
 
@@ -15,8 +15,7 @@ class DenseBlock(chainer.Chain):
         self.n_layer = n_layer
         super(DenseBlock, self).__init__()
         for i in moves.range(self.n_layer):
-            W = np.random.randn(growth_rate, in_ch + i * growth_rate, 3, 3) \
-                .astype(np.float32) * math.sqrt(2. / 9 / growth_rate)
+            W = initializers.HeNormal(1 / np.sqrt(2), np.float32)
             self.add_link('bn%d' % (i + 1),
                           L.BatchNormalization(in_ch + i * growth_rate))
             self.add_link('conv%d' % (i + 1),
@@ -33,8 +32,7 @@ class DenseBlock(chainer.Chain):
 
 class Transition(chainer.Chain):
     def __init__(self, in_ch):
-        W = np.random.randn(in_ch, in_ch, 1, 1).astype(np.float32) \
-            * math.sqrt(2. / in_ch)
+        W = initializers.HeNormal(1 / np.sqrt(2), np.float32)
         super(Transition, self).__init__(
             bn=L.BatchNormalization(in_ch),
             conv=L.Convolution2D(in_ch, in_ch, 1, initialW=W))
@@ -66,8 +64,7 @@ class DenseNet(chainer.Chain):
         in_chs = moves.range(
             in_ch, in_ch + (block + 1) * n_layer * growth_rate,
             n_layer * growth_rate)
-        W = np.random.randn(in_ch, 3, 3, 3).astype(np.float32) * \
-            math.sqrt(2. / 9 / in_ch)
+        W = initializers.HeNormal(1 / np.sqrt(2), np.float32)
         super(DenseNet, self).__init__()
         self.add_link('conv1', L.Convolution2D(3, in_ch, 3, 1, 1, initialW=W))
         for i in moves.range(block):
