@@ -61,9 +61,8 @@ class DenseNet(chainer.Chain):
             block: Number of dense block.
 
         """
-        in_chs = moves.range(
-            in_ch, in_ch + (block + 1) * n_layer * growth_rate,
-            n_layer * growth_rate)
+        in_chs = [in_ch + n_layer * growth_rate * i
+                  for i in moves.range(block + 1)]
         W = initializers.HeNormal(1 / np.sqrt(2), np.float32)
         super(DenseNet, self).__init__()
         self.add_link('conv1', L.Convolution2D(3, in_ch, 3, 1, 1, initialW=W))
