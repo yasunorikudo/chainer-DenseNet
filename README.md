@@ -5,6 +5,8 @@ Implementation by Chainer. Original paper is [Densely Connected Convolutional Ne
 
 # Requirements
 
+- python 2.7
+
 - [Chainer 1.15.0+](https://github.com/pfnet/chainer) (Neural network framework)
 
 # Start training
@@ -27,3 +29,9 @@ python train.py --help
 ![](https://raw.githubusercontent.com/yasunorikudo/chainer-DenseNet/images/cifar10.png)
 
 [Original paper](https://arxiv.org/abs/1608.06993) reported 5.24% validation error under the same conditions.
+
+- Cifar-100 (batchsize=64, depth=40, growth_rate=12, data augmentation)
+
+![](https://raw.githubusercontent.com/yasunorikudo/chainer-DenseNet/images/cifar100.png)
+
+[Original paper](https://arxiv.org/abs/1608.06993) reported 24.42% validation error under the same conditions.
