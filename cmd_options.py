@@ -29,20 +29,39 @@ def create_result_dir(dir):
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpu', type=int, default=0)
-    parser.add_argument('--augment', type=str, default='t', choices=['t', 'f'])
-    parser.add_argument('--batchsize', type=int, default=64)
-    parser.add_argument('--split_size', type=int, default=1)
-    parser.add_argument('--lr', type=float, default=0.1)
-    parser.add_argument('--weight_decay', type=float, default=1e-4)
-    parser.add_argument('--depth', type=int, default=40)
-    parser.add_argument('--growth_rate', type=int, default=12)
-    parser.add_argument('--drop_ratio', type=float, default=0)  # 0.2 (cifar+)
-    parser.add_argument('--block', type=int, default=3)
-    parser.add_argument('--init_model', type=str, default='')
-    parser.add_argument('--dir', type=str, default='')
+    parser.add_argument('--gpu', type=int, default=0,
+                        help='Set GPU device number. Default is 0.')
+    parser.add_argument('--augment', type=str, default='t', choices=['t', 'f'],
+                        help='Whether to use data augmentation. '
+                        'Default is \'t\'')
+    parser.add_argument('--batchsize', type=int, default=64,
+                        help='Default is 64.')
+    parser.add_argument('--split_size', type=int, default=1,
+                        help='Split size of batch in order to reduce GPU mem'
+                        'ory. Default is 1.')
+    parser.add_argument('--lr', type=float, default=0.1,
+                        help='Initial learning rate. Default is 0.1')
+    parser.add_argument('--weight_decay', type=float, default=1e-4,
+                        help='Default is 1e-4.')
+    parser.add_argument('--depth', type=int, default=40,
+                        help='Depth of DenseNet, which is defined as L in '
+                        'the paper. Default is 40.')
+    parser.add_argument('--growth_rate', type=int, default=12,
+                        help='Growth rate which is defined as k in the paper.'
+                        ' Default is 12.')
+    parser.add_argument('--drop_ratio', type=float, default=0,
+                        help='Dropout ratio. The paper recommends 0 with data'
+                        ' augmentation and 0.2 without data augmentation. '
+                        'Default is 0')
+    parser.add_argument('--block', type=int, default=3,
+                        help='Number of dense block. Default is 3.')
+    parser.add_argument('--init_model', type=str, default='',
+                        help='Path to chainer model to load before trainig.')
+    parser.add_argument('--dir', type=str, default='',
+                        help='Directory name to save logs.')
     parser.add_argument('--dataset', type=str, default='cifar10',
-                        choices=['cifar10', 'cifar100', 'SVHN'])
+                        choices=['cifar10', 'cifar100', 'SVHN'],
+                        help='Dataset name. Default \'cifar10\'.')
     args = parser.parse_args()
 
     if args.batchsize % args.split_size != 0:
