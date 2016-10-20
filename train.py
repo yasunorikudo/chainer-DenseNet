@@ -38,9 +38,9 @@ def main(args):
     train = PreprocessedDataset(train, mean, std, random=args.augment)
     test = PreprocessedDataset(test, mean, std)
 
-    train_iter = chainer.iterators.MultiprocessIterator(
+    train_iter = chainer.iterators.SerialIterator(
         train, args.batchsize / args.split_size)
-    test_iter = chainer.iterators.MultiprocessIterator(
+    test_iter = chainer.iterators.SerialIterator(
         test, args.batchsize / args.split_size, repeat=False, shuffle=False)
 
     model = chainer.links.Classifier(DenseNet(
