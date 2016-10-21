@@ -3,7 +3,6 @@
 
 import chainer
 import chainer.functions as F
-from chainer import initializers
 import chainer.links as L
 
 import numpy as np
@@ -15,12 +14,11 @@ class DenseBlock(chainer.Chain):
         self.n_layer = n_layer
         super(DenseBlock, self).__init__()
         for i in moves.range(self.n_layer):
-            W = initializers.HeNormal(1 / np.sqrt(2), np.float32)
             self.add_link('bn%d' % (i + 1),
                           L.BatchNormalization(in_ch + i * growth_rate))
             self.add_link('conv%d' % (i + 1),
-                          L.Convolution2D(in_ch + i * growth_rate,
-                                          growth_rate, 3, 1, 1, initialW=W))
+                          L.Convolution2D(in_ch + i * growth_rate, growth_rate,
+                                          3, 1, 1, wscale=np.sqrt(2)))
 
     def __call__(self, x, dropout_ratio, train):
         for i in moves.range(1, self.n_layer + 1):
@@ -32,10 +30,9 @@ class DenseBlock(chainer.Chain):
 
 class Transition(chainer.Chain):
     def __init__(self, in_ch):
-        W = initializers.HeNormal(1 / np.sqrt(2), np.float32)
         super(Transition, self).__init__(
             bn=L.BatchNormalization(in_ch),
-            conv=L.Convolution2D(in_ch, in_ch, 1, initialW=W))
+            conv=L.Convolution2D(in_ch, in_ch, 1, wscale=np.sqrt(2)))
 
     def __call__(self, x, dropout_ratio, train):
         h = F.relu(self.bn(x, test=not train))
@@ -63,9 +60,9 @@ class DenseNet(chainer.Chain):
         """
         in_chs = [in_ch + n_layer * growth_rate * i
                   for i in moves.range(block + 1)]
-        W = initializers.HeNormal(1 / np.sqrt(2), np.float32)
         super(DenseNet, self).__init__()
-        self.add_link('conv1', L.Convolution2D(3, in_ch, 3, 1, 1, initialW=W))
+        self.add_link(
+            'conv1', L.Convolution2D(3, in_ch, 3, 1, 1, wscale=np.sqrt(2)))
         for i in moves.range(block):
             self.add_link('dense%d' % (i + 2),
                           DenseBlock(in_chs[i], growth_rate, n_layer))
