@@ -24,18 +24,18 @@ def create_fig(out_dir):
     x = range(1, len(train_loss) + 1)
 
     # show graph
-    fig, (axL, axR) = plt.subplots(ncols=2, figsize=(10, 4), sharex=True)
+    fig, (axL, axR) = plt.subplots(ncols=2, figsize=(10, 5), sharex=True)
     axL.plot(x, valid_error, label='valid error')
     axL.plot(x, train_error, label='train error')
     axL.set_title(
         'Error (min. valid error: {0:.3f}%)'.format(min(valid_error) * 100))
-    axL.set_xlabel('epoch')
+    axL.set_xlabel('epochs')
     axL.set_ylabel('error')
     axL.legend(loc='upper right')
     axR.plot(x, valid_loss, label='valid loss')
     axR.plot(x, train_loss, label='train loss')
     axR.set_title('Loss')
-    axR.set_xlabel('epoch')
+    axR.set_xlabel('epochs')
     axR.set_ylabel('loss')
     axR.legend(loc='upper right')
     fig.savefig(os.path.join(out_dir, 'graph.png'))
