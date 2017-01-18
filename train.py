@@ -8,8 +8,6 @@ from chainer import serializers
 from chainer import training
 from chainer.training import extensions
 
-import time
-
 import cmd_options
 from dataset import PreprocessedDataset
 from densenet import DenseNet
@@ -38,8 +36,7 @@ def main(args):
     train = PreprocessedDataset(train, mean, std, random=args.augment)
     test = PreprocessedDataset(test, mean, std)
 
-    train_iter = chainer.iterators.SerialIterator(
-        train, args.batchsize / args.split_size)
+    train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
     test_iter = chainer.iterators.SerialIterator(
         test, args.batchsize / args.split_size, repeat=False, shuffle=False)
 
@@ -76,11 +73,8 @@ def main(args):
     trainer.extend(extensions.snapshot_object(
         optimizer, 'epoch_{.updater.epoch}.state'), trigger=val_interval)
     trainer.extend(extensions.LogReport(trigger=log_interval))
-    start_time = time.time()
-    trainer.extend(extensions.observe_value(
-        'time', lambda _: time.time() - start_time), trigger=log_interval)
     trainer.extend(extensions.PrintReport([
-        'time', 'epoch', 'iteration', 'main/loss', 'validation/main/loss',
+        'elapsed_time', 'epoch', 'iteration', 'main/loss', 'validation/main/loss',
         'main/accuracy', 'validation/main/accuracy', 'lr',
     ]), trigger=log_interval)
     trainer.extend(extensions.observe_value(

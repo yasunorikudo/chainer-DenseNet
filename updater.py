@@ -40,16 +40,10 @@ class StandardUpdater(training.StandardUpdater):
         optimizer = self._optimizers['main']
         model = optimizer.target
         model.cleargrads()
-        is_new_epoch = False
+        batch = self._iterators['main'].next()
 
-        for _ in six.moves.range(self._split_size):
-            batch = self._iterators['main'].next()
-            in_arrays = self.converter(batch, self.device)
-
-            if self._iterators['main'].is_new_epoch:
-                is_new_epoch = True
-            self._iterators['main'].is_new_epoch = is_new_epoch
-
+        for i in six.moves.range(self._split_size):
+            in_arrays = self.converter(batch[i::self._split_size], self.device)
             in_vars = tuple(variable.Variable(x) for x in in_arrays)
             loss = model(*in_vars) / self._grad_divisor
             loss.backward()
