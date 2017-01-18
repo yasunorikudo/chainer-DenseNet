@@ -12,7 +12,7 @@ import cmd_options
 from dataset import PreprocessedDataset
 from densenet import DenseNet
 from graph import create_fig
-from updater import StandardUpdater
+from updater import ParallelUpdater
 
 
 class TestModeEvaluator(extensions.Evaluator):
@@ -45,23 +45,25 @@ def main(args):
     train = PreprocessedDataset(train, mean, std, random=args.augment)
     test = PreprocessedDataset(test, mean, std)
 
+    test_batchsize = args.batchsize // (args.split_size * len(args.gpus))
     train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
     test_iter = chainer.iterators.SerialIterator(
-        test, args.batchsize / args.split_size, repeat=False, shuffle=False)
+        test, test_batchsize, repeat=False, shuffle=False)
 
     model = chainer.links.Classifier(DenseNet(
         n_layer, args.growth_rate, n_class, args.drop_ratio, 16, args.block))
     if args.init_model:
         serializers.load_npz(args.init_model, model)
-    chainer.cuda.get_device(args.gpu).use()
-    model.to_gpu()
 
     optimizer = chainer.optimizers.NesterovAG(lr=args.lr, momentum=0.9)
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(args.weight_decay))
 
-    updater = StandardUpdater(
-        train_iter, optimizer, (args.split_size, 'mean'), device=args.gpu)
+    devices = {'main': args.gpus[0]}
+    for gid in args.gpus[1:]:
+        devices['gpu{}'.format(gid)] = gid
+    updater = ParallelUpdater(
+        train_iter, optimizer, args.split_size, devices=devices)
     trainer = training.Trainer(updater, (300, 'epoch'), out=args.dir)
 
     val_interval = (1, 'epoch')
@@ -73,7 +75,7 @@ def main(args):
         return optimizer.lr
 
     trainer.extend(TestModeEvaluator(
-        test_iter, model, device=args.gpu), trigger=val_interval)
+        test_iter, model, device=args.gpus[0]), trigger=val_interval)
     trainer.extend(extensions.observe_value(
         'lr', lambda _: lr_shift()), trigger=(1, 'epoch'))
     trainer.extend(extensions.dump_graph('main/loss'))

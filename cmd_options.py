@@ -29,8 +29,9 @@ def create_result_dir(dir):
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpu', type=int, default=0,
-                        help='Set GPU device number. Default is 0.')
+    parser.add_argument('--gpus', type=str, default='0',
+                        help='Set GPU device numbers with comma saparated. '
+                        'Default is 0.')
     parser.add_argument('--augment', type=str, default='t', choices=['t', 'f'],
                         help='Whether to use data augmentation. '
                         'Default is \'t\'')
@@ -64,9 +65,7 @@ def get_arguments():
                         help='Dataset name. Default \'cifar10\'.')
     args = parser.parse_args()
 
-    if args.batchsize % args.split_size != 0:
-        raise Exception('batchsize must be divisible by split_size')
-
+    args.gpus = map(int, args.gpus.split(','))
     args.augment = True if args.augment == 't' else False
     args.dir = create_result_dir(args.dir)
 
