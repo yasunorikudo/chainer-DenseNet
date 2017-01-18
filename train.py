@@ -11,9 +11,18 @@ from chainer.training import extensions
 import cmd_options
 from dataset import PreprocessedDataset
 from densenet import DenseNet
-from evaluator import Evaluator
 from graph import create_fig
 from updater import StandardUpdater
+
+
+class TestModeEvaluator(extensions.Evaluator):
+
+    def evaluate(self):
+        model = self.get_target('main')
+        model.predictor.train = False
+        ret = super(TestModeEvaluator, self).evaluate()
+        model.predictor.train = True
+        return ret
 
 
 def main(args):
@@ -63,7 +72,7 @@ def main(args):
             optimizer.lr *= 0.1
         return optimizer.lr
 
-    trainer.extend(Evaluator(
+    trainer.extend(TestModeEvaluator(
         test_iter, model, device=args.gpu), trigger=val_interval)
     trainer.extend(extensions.observe_value(
         'lr', lambda _: lr_shift()), trigger=(1, 'epoch'))
