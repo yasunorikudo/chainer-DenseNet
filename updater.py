@@ -15,13 +15,13 @@ class StandardUpdater(training.StandardUpdater):
     def __init__(self, iterator, optimizer, batch_split=(1, 'mean'),
                  converter=convert.concat_examples,
                  device=None, loss_func=None):
-        if isinstance(iterator, iterator_module.Iterator):
-            iterator = {'main': iterator}
-        self._iterators = iterator
-
-        if isinstance(optimizer, optimizer_module.Optimizer):
-            optimizer = {'main': optimizer}
-        self._optimizers = optimizer
+        super(StandardUpdater, self).__init__(
+            iterator=iterator,
+            optimizer=optimizer,
+            converter=converter,
+            device=device,
+            loss_func=loss_func,
+        )
 
         self._split_size = batch_split[0]
         if batch_split[1] == 'mean':
@@ -30,11 +30,6 @@ class StandardUpdater(training.StandardUpdater):
             self._grad_divisor = 1
         else:
             raise Exception('batch_split option is \'mean\' or \'sum\'')
-
-        self.converter = converter
-        self.loss_func = loss_func
-        self.device = device
-        self.iteration = 0
 
     def update_core(self):
         optimizer = self._optimizers['main']
