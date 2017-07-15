@@ -12,23 +12,15 @@ import cmd_options
 from dataset import PreprocessedDataset
 from densenet import DenseNet
 from graph import create_fig
-from updater import ParallelUpdater
+# from updater import MultiprocessParallelUpdater
 
-
-class TestModeEvaluator(extensions.Evaluator):
-
-    def evaluate(self):
-        model = self.get_target('main')
-        model.predictor.train = False
-        ret = super(TestModeEvaluator, self).evaluate()
-        model.predictor.train = True
-        return ret
+from chainer.training import updaters
 
 
 def main(args):
 
     assert((args.depth - args.block - 1) % args.block == 0)
-    n_layer = (args.depth - args.block - 1) / args.block
+    n_layer = (args.depth - args.block - 1) // args.block
     if args.dataset == 'cifar10':
         train, test = cifar.get_cifar10()
         n_class = 10
@@ -45,10 +37,14 @@ def main(args):
     train = PreprocessedDataset(train, mean, std, random=args.augment)
     test = PreprocessedDataset(test, mean, std)
 
-    test_batchsize = args.batchsize // (args.split_size * len(args.gpus))
-    train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
+    devices = tuple(args.gpus)
+
+    # test_batchsize = args.batchsize // (args.split_size * len(args.gpus))
+    train_iter = [
+        chainer.iterators.SerialIterator(i, args.batchsize)
+        for i in chainer.datasets.split_dataset_n_random(train, len(devices))]
     test_iter = chainer.iterators.SerialIterator(
-        test, test_batchsize, repeat=False, shuffle=False)
+        test, args.batchsize, repeat=False, shuffle=False)
 
     model = chainer.links.Classifier(DenseNet(
         n_layer, args.growth_rate, n_class, args.drop_ratio, 16, args.block))
@@ -59,11 +55,12 @@ def main(args):
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(args.weight_decay))
 
-    devices = {'main': args.gpus[0]}
-    for gid in args.gpus[1:]:
-        devices['gpu{}'.format(gid)] = gid
-    updater = ParallelUpdater(
-        train_iter, optimizer, args.split_size, devices=devices)
+    # devices = {'main': args.gpus[0]}
+    # for gid in args.gpus[1:]:
+    #     devices['gpu{}'.format(gid)] = gid
+
+    updater = updaters.MultiprocessParallelUpdater(
+        train_iter, optimizer, devices=devices)
     trainer = training.Trainer(updater, (300, 'epoch'), out=args.dir)
 
     val_interval = (1, 'epoch')
@@ -74,7 +71,7 @@ def main(args):
             optimizer.lr *= 0.1
         return optimizer.lr
 
-    trainer.extend(TestModeEvaluator(
+    trainer.extend(extensions.Evaluator(
         test_iter, model, device=args.gpus[0]), trigger=val_interval)
     trainer.extend(extensions.observe_value(
         'lr', lambda _: lr_shift()), trigger=(1, 'epoch'))
@@ -88,9 +85,9 @@ def main(args):
         'elapsed_time', 'epoch', 'iteration', 'main/loss', 'validation/main/loss',
         'main/accuracy', 'validation/main/accuracy', 'lr',
     ]), trigger=log_interval)
-    trainer.extend(extensions.observe_value(
-        'graph', lambda _: create_fig(args.dir)),
-        trigger=(1, 'epoch'), priority=50)
+    # trainer.extend(extensions.observe_value(
+    #     'graph', lambda _: create_fig(args.dir)),
+    #     trigger=(1, 'epoch'), priority=50)
     trainer.extend(extensions.ProgressBar(update_interval=10))
 
     trainer.run()

@@ -65,7 +65,7 @@ def get_arguments():
                         help='Dataset name. Default \'cifar10\'.')
     args = parser.parse_args()
 
-    args.gpus = map(int, args.gpus.split(','))
+    args.gpus = list(map(int, args.gpus.split(',')))
     args.augment = True if args.augment == 't' else False
     args.dir = create_result_dir(args.dir)
 
